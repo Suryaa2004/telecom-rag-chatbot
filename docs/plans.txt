@@ -1,0 +1,17 @@
+Basic Plan
+Price: $10 per month
+Data: 5GB
+Calls: Unlimited local calls
+SMS: 100 per day
+
+Standard Plan
+Price: $20 per month
+Data: 20GB
+Calls: Unlimited
+SMS: Unlimited
+
+Premium Plan
+Price: $40 per month
+Data: Unlimited
+Calls: Unlimited international
+SMS: Unlimited
