@@ -1,0 +1,67 @@
+# Python to Linux Web App on Azure
+# Build your Python project and deploy it to Azure as a Linux Web App.
+# Change python version to one thats appropriate for your application.
+# https://docs.microsoft.com/azure/devops/pipelines/languages/python
+
+trigger:
+  - master
+
+variables:
+  azureServiceConnectionId: '5807bf38-f0aa-4518-94b4-42763ebabf44'
+  webAppName: 'telecom-chatbot'
+  pythonVersion: '3.11'
+
+stages:
+- stage: Build
+  displayName: Build Stage
+
+  jobs:
+  - job: BuildJob
+    pool:
+      name: selfhosted-pool   # Self-hosted pool
+
+    steps:
+    - script: |
+        echo Python Version
+        python --version
+      displayName: Check Python
+
+    - script: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+      displayName: Install Dependencies
+
+    - task: ArchiveFiles@2
+      displayName: Archive Files
+      inputs:
+        rootFolderOrFile: '.'
+        includeRootFolder: false
+        archiveType: zip
+        archiveFile: $(Build.ArtifactStagingDirectory)/app.zip
+        replaceExistingArchive: true
+
+    - publish: $(Build.ArtifactStagingDirectory)/app.zip
+      artifact: drop
+
+- stage: Deploy
+  displayName: Deploy Stage
+  dependsOn: Build
+  condition: succeeded()
+
+  jobs:
+  - deployment: DeploymentJob
+    pool:
+      name: selfhosted-pool   # Self-hosted pool again
+
+    environment: telecom-chatbot
+
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebApp@1
+            inputs:
+              azureSubscription: $(azureServiceConnectionId)
+              appType: webAppLinux
+              appName: $(webAppName)
+              package: $(Pipeline.Workspace)/drop/app.zip
